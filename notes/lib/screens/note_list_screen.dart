@@ -83,3 +83,40 @@ class NoteList extends StatelessWidget {
     );
   }
 }
+
+showAlertDialog(BuildContext context, Note document) {
+    // set up the buttons
+    Widget cancelButton = ElevatedButton(
+      child: const Text("No"),
+      onPressed: () {
+        Navigator.of(context).pop();
+      },
+    );
+    Widget continueButton = ElevatedButton(
+      child: const Text("Yes"),
+      onPressed: () {
+        NoteService.deleteNote(document).whenComplete(() {
+          Navigator.of(context).pop();
+        });
+      },
+    );
+
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: const Text("Delete Note"),
+      content: const Text("Are you sure to delete Note?"),
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    );
+
+    // show the dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+}
