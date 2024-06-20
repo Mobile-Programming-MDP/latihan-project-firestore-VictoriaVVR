@@ -22,7 +22,6 @@ class _NoteDialogState extends State<NoteDialog> {
 
   @override
   void initState() {
-    // TODO: implement inistate
     super.initState();
     if (widget.note != null) {
       _titleController.text = widget.note!.title;
@@ -30,22 +29,20 @@ class _NoteDialogState extends State<NoteDialog> {
     }
   }
 
-  Future<void> _pickerImage() async {
-    final pickedFile =
-        await ImagePicker().pickImage(source: ImageSource.gallery);
+  Future<void> _getLocation() async {
+    final location = await LocationService().getCurrentLocaton();
+    setState(() {
+      _position = location;
+    });
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedFile = await ImagePicker().pickImage(source: source);
     if (pickedFile != null) {
       setState(() {
         _imageFile = pickedFile;
       });
     }
-  }
-
-  Future<void> _getLocation() async {
-    final location = await LocationService().getCurrentLocation();
-
-    setState(() {
-      _position = location;
-    });
   }
 
   @override
@@ -78,18 +75,27 @@ class _NoteDialogState extends State<NoteDialog> {
             child: Text('Image: '),
           ),
           Expanded(
-              child: _imageFile != null
-                  ? Image.network(_imageFile!.path, fit: BoxFit.cover)
-                  : widget.note?.imageUrl != null &&
-                          Uri.parse(widget.note!.imageUrl!).isAbsolute
-                      ? Image.network(
-                          widget.note!.imageUrl!,
-                          fit: BoxFit.cover,
-                        )
-                      : Container()),
-          TextButton(
-            onPressed: _pickerImage,
-            child: const Text('Pick Image'),
+            child: _imageFile != null
+                ? Image.network(_imageFile!.path, fit: BoxFit.cover)
+                : (widget.note?.imageUrl != null &&
+                        Uri.parse(widget.note!.imageUrl!).isAbsolute
+                    ? Image.network(
+                        widget.note!.imageUrl!,
+                        fit: BoxFit.cover,
+                      )
+                    : Container()),
+          ),
+          Row(
+            children: [
+              TextButton(
+                onPressed: () => _pickImage(ImageSource.gallery),
+                child: const Text('Pick Image from Gallery'),
+              ),
+              TextButton(
+                onPressed: () => _pickImage(ImageSource.camera),
+                child: const Text('Take Photo with Camera'),
+              ),
+            ],
           ),
           TextButton(
             onPressed: _getLocation,
@@ -99,7 +105,7 @@ class _NoteDialogState extends State<NoteDialog> {
             _position?.latitude != null && _position?.longitude != null
                 ? "Current Location : ${_position!.latitude.toString()}, ${_position!.longitude.toString()}"
                 : "Current Location : ${widget.note?.lat}, ${widget.note?.lng}",
-            textAlign: TextAlign.center,
+            textAlign: TextAlign.start,
           )
         ],
       ),
@@ -126,19 +132,18 @@ class _NoteDialogState extends State<NoteDialog> {
               title: _titleController.text,
               description: _descriptionController.text,
               imageUrl: imageUrl,
-              lat: widget.note?.lat.toString() != _position!.latitude.toString()
-                  ? _position!.longitude.toString()
-                  : widget.note?.lng.toString(),
+              lat:
+                  _position?.latitude.toString() ?? widget.note?.lat.toString(),
+              lng: _position?.longitude.toString() ??
+                  widget.note?.lng.toString(),
               createdAt: widget.note?.createdAt,
             );
             if (widget.note == null) {
-              NoteService.addNote(note).whenComplete(() {
-                Navigator.of(context).pop();
-              });
+              await NoteService.addNote(note);
             } else {
-              NoteService.updateNote(note)
-                  .whenComplete(() => Navigator.of(context).pop());
+              await NoteService.updateNote(note);
             }
+            Navigator.of(context).pop();
           },
           child: Text(widget.note == null ? 'Add' : 'Update'),
         ),

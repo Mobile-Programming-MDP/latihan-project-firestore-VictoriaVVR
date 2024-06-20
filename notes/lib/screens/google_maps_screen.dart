@@ -18,6 +18,7 @@ class _GoogleMapsScreenState extends State<GoogleMapsScreen> {
   late CameraPosition _cameraPosition;
   late Set<Marker> _markers;
   late MarkerId _markerId;
+
   @override
   void initState() {
     super.initState();
@@ -37,9 +38,7 @@ class _GoogleMapsScreenState extends State<GoogleMapsScreen> {
         markerId: _markerId,
         position: LatLng(widget.latitude, widget.longitude),
         infoWindow: const InfoWindow(
-          title: "Your Location",
-          snippet: "your current location is here",
-        ),
+            title: "Your Location", snippet: "your current location is here"),
       ),
     );
   }
@@ -51,8 +50,8 @@ class _GoogleMapsScreenState extends State<GoogleMapsScreen> {
         title: const Text("Google Map"),
       ),
       body: GoogleMap(
-        myLocationButtonEnabled: true,
         myLocationEnabled: true,
+        myLocationButtonEnabled: true,
         mapType: MapType.normal,
         initialCameraPosition: _cameraPosition,
         markers: _markers,
@@ -64,14 +63,14 @@ class _GoogleMapsScreenState extends State<GoogleMapsScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: _gotoLocation,
-        label: const Text("To your location"),
+        onPressed: _geoLocation,
+        label: const Text('To your location'),
         icon: const Icon(Icons.directions_car),
       ),
     );
   }
 
-  Future<void> _gotoLocation() async {
+  Future<void> _geoLocation() async {
     final GoogleMapController controller = await _controller.future;
     await controller
         .animateCamera(CameraUpdate.newCameraPosition(_cameraPosition));
